@@ -9,6 +9,10 @@ import socket
 
 class Scorer(object):
     def __init__(self, parent):
+        """
+
+        :type parent: object
+        """
         self.parent = parent
 
 # Main containing frame
