@@ -18,25 +18,26 @@ class Scorer(object):
         self.appframe = ttk.Frame(parent, padding="5")
         self.appframe.grid(column=0, row=0)
         
-        self.casparinst = caspartalk.CasparServer()
+        # self.casparinst = caspartalk.CasparServer()
 
-# Subframe collecting sport and TV feed version settings
+# Frame collecting sport and TV feed version settings
         self.sportframe = ttk.Frame(self.appframe, padding='5')
         self.sportframe.grid(column=0, row=0)
         
         self.sportver = StringVar()
+        self.sportver.set('bbr0')
 
-        self.sportmenu = ttk.Combobox(self.sportframe, textvariable=self.sportver)
-        self.sportmenu['values'] = ('Basketball Rev0', 'Basketball Rev1', 'Basketball Rev2')
-        self.sportver = 'Basketball Rev0'
-        self.sportmenu.grid(column=0, row=0)
-        self.sportmenu.bind('<<ComboboxSelected>>', self.sportmenu.selection_clear())
-        self.sportmenu.state(['readonly'])
-        self.sportlabel = ttk.Label(self.sportframe, textvariable=self.sportver)
-        self.sportlabel.configure(anchor='center')
-        self.sportlabel.grid(column=0, row=1)
+        self.bbr0 = ttk.Radiobutton(self.sportframe, text="Basketball Rev0", variable=self.sportver, value='bbr0')
+        self.bbr0.grid(column=0, row=0)
+        self.bbr1 = ttk.Radiobutton(self.sportframe, text="Basketball Rev1", variable=self.sportver, value='bbr1')
+        self.bbr1.grid(column=0, row=1)
+        self.bbr2 = ttk.Radiobutton(self.sportframe, text="Basketball Rev2", variable=self.sportver, value='bbr2')
+        self.bbr2.grid(column=0, row=2)
+        # self.sportlabel = ttk.Label(self.sportframe, textvariable=self.sportver)
+        # self.sportlabel.configure(anchor='center')
+        # self.sportlabel.grid(column=0, row=3)
 
-# Subframe collecting CasparCG connection settings
+# Frame collecting CasparCG connection settings
         self.casparframe = ttk.Frame(self.appframe, padding='5')
         self.casparframe.grid(column=0, row=1)
 
@@ -48,7 +49,7 @@ class Scorer(object):
         self.casparonline = StringVar()
         self.casparlabel = ttk.Label(self.casparframe, textvariable=self.casparonline).grid(column=0, row=1)
 
-# Subframe collecting serial port settings
+# Frame collecting serial port settings
         self.serialframe = ttk.Frame(self.appframe, padding='5')
         self.serialframe.grid(column=0, row=2)
         self.serialconnectbutton = ttk.Button(self.serialframe, text="Open Port", command=self.serialconnect)
@@ -76,8 +77,11 @@ class Scorer(object):
             raise IOError
 
     def caspardisconnect(self):
-        self.casparinst.disconnect()
-        self.sportmenu.state(['readonly'])
+        try:
+            self.casparinst.disconnect()
+            self.sportmenu.state(['readonly'])
+        except:
+            raise IOError
 
     def onlineindicator(self):
         pass
@@ -96,13 +100,12 @@ class Scorer(object):
 
 
 class CasparData(object):  # Base class for scoreboard data objects
-    def __init__(self, inputtext, ver):
-        self.inputtext = inputtext
+    def __init__(self, ver):
         self.ver = ver
         self.parse_start = 0
         self.parse_stop = 0
-        # Breakdown of fields for input parsing
-        self.bbr0dict = {
+        # Constants of fields for input parsing
+        bbr0dict = {
             'clock': [0, 7],
             'shotclock': [8, 10],
             'homescore': [11, 14],
@@ -118,7 +121,7 @@ class CasparData(object):  # Base class for scoreboard data objects
             'period': [26, 27]
         }
 
-        self.bbr0dict = {
+        bbr1dict = {
             'clock': [0, 7],
             'shotclock': [8, 12],
             'homescore': [12, 15],
@@ -134,7 +137,7 @@ class CasparData(object):  # Base class for scoreboard data objects
             'period': [28, 29]
         }
 
-        self.bbr0dict = {
+        bbr2dict = {
             'clock': [0, 7],
             'shotclock': [8, 12],
             'homescore': [12, 15],
@@ -151,56 +154,57 @@ class CasparData(object):  # Base class for scoreboard data objects
             'timeoutclock': [29, 34]
         }
 
-    def parseinput(self, inputtext, parse_start, parse_stop):
+    def parseinput(self, inputtext):
         """
         :param str inputtext: The line of raw ASCII data received from serial
         :param int parse_start: The start index for the desired field in the line
         :param int parse_stop: The stop index for same
         """
-        output = inputtext[parse_start:parse_stop].strip()
+        output = inputtext[self.parse_start:self.parse_stop].strip()
         return output
 
 
-class HomeScore(CasparData):
-    if CasparData.ver == 'Basketball Rev0':
-        parse_start = CasparData.bbr0dict['homescore'][0]
-        parse_stop = CasparData.bbr0dict['homescore'][1]
-    elif CasparData.ver == 'Basketball Rev1':
-        parse_start = CasparData.bbr1dict['homescore'][0]
-        parse_stop = CasparData.bbr1dict['homescore'][1]
-    elif CasparData.ver == 'Basketball Rev2':
-        parse_start = CasparData.bbr2dict['homescore'][0]
-        parse_stop = CasparData.bbr2dict['homescore'][1]
-    else:
-        raise ValueError
-            
 
-class VisitorScore(CasparData):
-    if CasparData.ver == 'Basketball Rev0':
-        CasparData.parse_start = 14
-        CasparData.parse_stop = 17
-    elif CasparData.ver == 'Basketball Rev1':
-        CasparData.parse_start = 0
-        CasparData.parse_stop = 0
-    elif CasparData.ver == 'Basketball Rev2':
-        CasparData.parse_start = 0
-        CasparData.parse_stop = 0
-    else:
-        raise ValueError
-            
-
-class Clock(CasparData):
-    if CasparData.ver == 'Basketball Rev0':
-        CasparData.parse_start = 0
-        CasparData.parse_stop = 7
-    elif CasparData.ver == 'Basketball Rev1':
-        CasparData.parse_start = 0
-        CasparData.parse_stop = 7
-    elif CasparData.ver == 'Basketball Rev2':
-        CasparData.parse_start = 0
-        CasparData.parse_stop = 7
-    else:
-        raise ValueError
+# class HomeScore(CasparData):
+#     if self.ver == 'Basketball Rev0':
+#         parse_start = bbr0dict['homescore'][0]
+#         parse_stop = bbr0dict['homescore'][1]
+#     elif CasparData.ver == 'Basketball Rev1':
+#         parse_start = bbr1dict['homescore'][0]
+#         parse_stop = bbr1dict['homescore'][1]
+#     elif CasparData.ver == 'Basketball Rev2':
+#         parse_start = bbr2dict['homescore'][0]
+#         parse_stop = bbr2dict['homescore'][1]
+#     else:
+#         raise ValueError
+#
+#
+# class VisitorScore(CasparData):
+#     if CasparData.ver == 'Basketball Rev0':
+#         CasparData.parse_start = 14
+#         CasparData.parse_stop = 17
+#     elif CasparData.ver == 'Basketball Rev1':
+#         CasparData.parse_start = 0
+#         CasparData.parse_stop = 0
+#     elif CasparData.ver == 'Basketball Rev2':
+#         CasparData.parse_start = 0
+#         CasparData.parse_stop = 0
+#     else:
+#         raise ValueError
+#
+#
+# class Clock(CasparData):
+#     if CasparData.ver == 'Basketball Rev0':
+#         CasparData.parse_start = 0
+#         CasparData.parse_stop = 7
+#     elif CasparData.ver == 'Basketball Rev1':
+#         CasparData.parse_start = 0
+#         CasparData.parse_stop = 7
+#     elif CasparData.ver == 'Basketball Rev2':
+#         CasparData.parse_start = 0
+#         CasparData.parse_stop = 7
+#     else:
+#         raise ValueError
 
 
 root = Tk()
