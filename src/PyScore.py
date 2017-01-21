@@ -60,26 +60,39 @@ class Scorer(object):
         self.serialport.baudrate = 9600
         
 # Testing label
-        self.feedbackframe = ttk.Frame(self.appframe, padding='5')
-        self.feedbackframe.grid(column=0, row=3)
-        self.feedbacktext = StringVar()
-        self.feedbacklabel = ttk.Label(self.feedbackframe, textvariable=self.feedbacktext, width="80")
-        self.feedbacklabel.grid(column=0, row=0)
-        self.testbutton = ttk.Button(self.feedbackframe, text="Test", command=self.starttest)
-        self.testbutton.grid(column=0, row=1)
-        self.testrun = False
+#         self.feedbackframe = ttk.Frame(self.appframe, padding='5')
+#         self.feedbackframe.grid(column=0, row=3)
+#         self.feedbacktext = StringVar()
+#         self.feedbacklabel = ttk.Label(self.feedbackframe, textvariable=self.feedbacktext, width="80")
+#         self.feedbacklabel.grid(column=0, row=0)
+#         self.testbutton = ttk.Button(self.feedbackframe, text="Test", command=self.starttest)
+#         self.testbutton.grid(column=0, row=1)
+#         self.testrun = False
+
+        # Instantiate score data objects
+        self.homescore = CasparData(str(self.sportver))
+        self.visitorscore = CasparData(str(self.sportver))
+        self.clock = CasparData(str(self.sportver))
+        self.shotclock = CasparData(str(self.sportver))
+        self.homefouls = CasparData(str(self.sportver))
+        self.visitorfouls = CasparData(str(self.sportver))
+        self.period = CasparData(str(self.sportver))
 
     def casparconnect(self):
         try:
-            self.casparinst.connect()
-            self.sportmenu.state(['disabled'])
+            # self.casparinst.connect()
+            self.bbr0.state(['disabled'])
+            self.bbr1.state(['disabled'])
+            self.bbr2.state(['disabled'])
         except:
             raise IOError
 
     def caspardisconnect(self):
         try:
-            self.casparinst.disconnect()
-            self.sportmenu.state(['readonly'])
+            # self.casparinst.disconnect()
+            self.bbr0.state(['!disabled'])
+            self.bbr1.state(['!disabled'])
+            self.bbr2.state(['!disabled'])
         except:
             raise IOError
 
@@ -101,9 +114,22 @@ class Scorer(object):
 
 class CasparData(object):  # Base class for scoreboard data objects
     def __init__(self, ver):
+        """
+        :param ver:
+        :attribute int parse_start: The start index for the desired field in the line
+        :attribute int parse_stop: The stop index for same
+        """
         self.ver = ver
-        self.parse_start = 0
-        self.parse_stop = 0
+        self.usedict = ''
+        self.
+        if self.ver == 'bbr0':
+            self.usedict = 'bbr0dict'
+        elif self.ver == 'bbr1':
+            self.usedict = 'bbr1dict'
+        elif self.ver == 'bbr2':
+            self.usedict = 'bbr2dict'
+        self.parse_start = self.usedict[self][0]
+        self.parse_stop = self.usedict['str(self)'][1]
         # Constants of fields for input parsing
         bbr0dict = {
             'clock': [0, 7],
@@ -154,15 +180,16 @@ class CasparData(object):  # Base class for scoreboard data objects
             'timeoutclock': [29, 34]
         }
 
-    def parseinput(self, inputtext):
+    def parseinput(self, inputtext=' 8:00  s    0  0 0 0      156'):
         """
         :param str inputtext: The line of raw ASCII data received from serial
-        :param int parse_start: The start index for the desired field in the line
-        :param int parse_stop: The stop index for same
+
         """
         output = inputtext[self.parse_start:self.parse_stop].strip()
         return output
 
+    def update_ver(self, value):
+        self.ver.set(value)
 
 
 # class HomeScore(CasparData):
