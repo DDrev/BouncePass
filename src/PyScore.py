@@ -3,6 +3,7 @@
 from Tkinter import *
 import ttk
 import serial
+import serial.tools.list_ports
 import caspartalk
 import socket
 
@@ -115,20 +116,19 @@ class Scorer(object):
 class CasparData(object):  # Base class for scoreboard data objects
     def __init__(self, ver):
         """
-        :param ver:
+        :param ver: The sport and feed version
         :attribute int parse_start: The start index for the desired field in the line
         :attribute int parse_stop: The stop index for same
         """
         self.ver = ver
         self.usedict = ''
-        self.
         if self.ver == 'bbr0':
             self.usedict = 'bbr0dict'
         elif self.ver == 'bbr1':
             self.usedict = 'bbr1dict'
         elif self.ver == 'bbr2':
             self.usedict = 'bbr2dict'
-        self.parse_start = self.usedict[self][0]
+        self.parse_start = self.usedict['str(self)'][0]
         self.parse_stop = self.usedict['str(self)'][1]
         # Constants of fields for input parsing
         bbr0dict = {
