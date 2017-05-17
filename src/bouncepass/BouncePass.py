@@ -1,7 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-from Tkinter import *
-
 import caspartalk
 
 
@@ -19,7 +17,6 @@ class Scorer(object):
 
     def casparconnect(self):
         casparinst = caspartalk.CasparServer
-        pass
         
     def serialconnect(self):
         pass
