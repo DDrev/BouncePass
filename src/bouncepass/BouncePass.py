@@ -97,8 +97,3 @@ class CasparData(object):  # Base class for scoreboard data objects
 #     else:
 #         raise ValueError
 
-
-root = Tk()
-main = Scorer(root)
-root.title("PyScore")
-root.mainloop()
