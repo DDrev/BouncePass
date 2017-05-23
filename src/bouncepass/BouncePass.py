@@ -1,96 +1,81 @@
 # -*- coding: UTF-8 -*-
 
 import caspartalk
+import serial
+import serial.tools.list_ports
 
 
 class Scorer(object):
     def __init__(self):
-        # Instantiate score data objects
-        self.homescore = CasparData()
-        self.visitorscore = CasparData()
-        self.clock = CasparData()
-        self.period = CasparData()
+        self.sport = 0
+        self.version = 0
+        self.serial = 0
+        self.startup()
 
-        self.shotclock = CasparData()
-        self.homefouls = CasparData()
-        self.visitorfouls = CasparData()
+    class CasparData(object):  # Base class for scoreboard data objects
+        def __init__(self, ident):
+            """
+            :rtype : object
+            :param ident: The score data item contained by this object
+            """
+            self.ident = ident
+            self.field = ''  # Field in Flash template this object's data will be displayed in
+            self.value = ''  # Contents of data object
+
+        @classmethod
+        def parseinput(self):
+            pass
+
+    def sportselect(self):
+        with raw_input('Enter sport:\n1 - Basketball\n2 - Football\n3 - Volleyball') as entry:
+            try:
+                if int(entry) in range(1, 4):
+                    self.sport = entry - 1
+            except:
+                raise ValueError
+
+    def versionselect(self):
+        if self.sport is 0:
+            with raw_input('Enter feed version:\n1 - Revision 0\n2 - Revision 1\n3 - Revision 2') as entry:
+                self.version = int(entry) - 1
+        elif self.sport is 1:
+            with raw_input('Enter feed version:\n 1 - Revision 0\n 2 - Revision 1') as entry:
+                self.version = int(entry) - 1
+        elif self.sport is 2:
+            self.version = 0
+        else:
+            raise ValueError
+
+    def startup(self):
+        # Startup dialog asking for sport, version, and serial port to use
+        self.sportselect()
+        self.versionselect()
+        self.serialselect()
+        self.instobjects()
+
+    def serialselect(self):
+        seriallist = serial.tools.list_ports.comports()
+        for i in range(len(seriallist)):
+            print (i + 1), '-', seriallist[i]
+        with raw_input('Enter serial port to use:') as entry:
+            self.serial = int(entry) - 1
+
+    def instobjects(self):
+        # Instantiate score data objects
+        homescore = self.CasparData('homescore')
+        visitorscore = self.CasparData('visitorscore')
+        clock = self.CasparData('clock')
+        period = self.CasparData('period')
+        shotclock = self.CasparData('shotclock')
+        homefouls = self.CasparData('homefouls')
+        visitorfouls = self.CasparData('visitorfouls')
 
     def casparconnect(self):
-        casparinst = caspartalk.CasparServer
-        
-    def serialconnect(self):
+        # casparinst = caspartalk.CasparServer
         pass
 
-
-class CasparData(object):  # Base class for scoreboard data objects
-    def __init__(self, ver):
-        """
-        :param ver: The sport and feed version
-        :attribute int parse_start: The start index for the desired field in the line
-        :attribute int parse_stop: The stop index for same
-        """
-        self.ver = ver
-        self.usedict = ''
-        if self.ver == 'bbr0':
-            self.usedict = 'bbr0dict'
-        elif self.ver == 'bbr1':
-            self.usedict = 'bbr1dict'
-        elif self.ver == 'bbr2':
-            self.usedict = 'bbr2dict'
-        self.parse_start = self.usedict['str(self)'][0]
-        self.parse_stop = self.usedict['str(self)'][1]
-        # Constants of fields for input parsing
-
-    def parseinput(self, inputtext=' 8:00  s    0  0 0 0      156'):
-        """
-        :param str inputtext: The line of raw ASCII data received from serial
-
-        """
-        output = inputtext[self.parse_start:self.parse_stop].strip()
-        return output
-
-    def update_ver(self, value):
-        self.ver.set(value)
+    def instserial(self):  # Instantiate object and open serial port
+        serialport = serial.Serial
 
 
-# class HomeScore(CasparData):
-#     if self.ver == 'Basketball Rev0':
-#         parse_start = bbr0dict['homescore'][0]
-#         parse_stop = bbr0dict['homescore'][1]
-#     elif CasparData.ver == 'Basketball Rev1':
-#         parse_start = bbr1dict['homescore'][0]
-#         parse_stop = bbr1dict['homescore'][1]
-#     elif CasparData.ver == 'Basketball Rev2':
-#         parse_start = bbr2dict['homescore'][0]
-#         parse_stop = bbr2dict['homescore'][1]
-#     else:
-#         raise ValueError
-#
-#
-# class VisitorScore(CasparData):
-#     if CasparData.ver == 'Basketball Rev0':
-#         CasparData.parse_start = 14
-#         CasparData.parse_stop = 17
-#     elif CasparData.ver == 'Basketball Rev1':
-#         CasparData.parse_start = 0
-#         CasparData.parse_stop = 0
-#     elif CasparData.ver == 'Basketball Rev2':
-#         CasparData.parse_start = 0
-#         CasparData.parse_stop = 0
-#     else:
-#         raise ValueError
-#
-#
-# class Clock(CasparData):
-#     if CasparData.ver == 'Basketball Rev0':
-#         CasparData.parse_start = 0
-#         CasparData.parse_stop = 7
-#     elif CasparData.ver == 'Basketball Rev1':
-#         CasparData.parse_start = 0
-#         CasparData.parse_stop = 7
-#     elif CasparData.ver == 'Basketball Rev2':
-#         CasparData.parse_start = 0
-#         CasparData.parse_stop = 7
-#     else:
-#         raise ValueError
 
