@@ -16,7 +16,8 @@ mastertable = {
         'visitorfto': [23, 24],
         'visitorpto': [24, 25],
         'visitortto': [25, 26],
-        'period': [26, 27]
+        'period': [26, 27],
+        'checksum': [27, 29]
     },
 
     'bbr1dict':  {  # Basketball Revision 1
@@ -32,7 +33,8 @@ mastertable = {
         'visitorfto': [25, 26],
         'visitorpto': [26, 27],
         'visitortto': [27, 28],
-        'period': [28, 29]
+        'period': [28, 29],
+        'checksum': [29, 31]
     },
 
     'bbr2dict':  {  # Basketball Revision 2
@@ -49,7 +51,8 @@ mastertable = {
         'visitorpto': [26, 27],
         'visitortto': [27, 28],
         'period': [28, 29],
-        'timeoutclock': [29, 34]
+        'timeoutclock': [29, 34],
+        'checksum': [34, 26]
     },
 
     'fbr0dict':  {  # Football Revision 0
@@ -61,7 +64,8 @@ mastertable = {
         'down': [32, 33],
         'yardstogo': [33, 35],
         'homeposs': [35, 36],
-        'visitorposs': [36, 37]
+        'visitorposs': [36, 37],
+        'checksum': [37, 39]
     },
 
     'fbr1dict':  {  # Football Revision 1
@@ -76,6 +80,17 @@ mastertable = {
         'visitorposs': [36, 37],
         'playclock': [37, 39],
         'hometto': [39, 40],
-        'visitortto': [40, 41]
+        'visitortto': [40, 41],
+        'checksum': [41, 43]
+    },
+
+    'vb0dict': {  # Volleyball
+        'clock': [0, 7],
+        'homescore': [8, 10],
+        'visitorscore': [10, 12],
+        'hometto': [12, 13],
+        'visitortto': [13, 14],
+        'gamenumber': [18, 19],
+        'checksum': [27, 29]
     }
 }

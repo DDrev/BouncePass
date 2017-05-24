@@ -3,6 +3,7 @@
 import caspartalk
 import serial
 import serial.tools.list_ports
+from ParseTables import mastertable
 
 
 class Scorer(object):
@@ -11,6 +12,9 @@ class Scorer(object):
         self.version = 0
         self.serial = 0
         self.startup()
+
+    class EntryError(ValueError):
+        pass
 
     class CasparData(object):  # Base class for scoreboard data objects
         def __init__(self, ident):
@@ -21,26 +25,31 @@ class Scorer(object):
             self.ident = ident
             self.field = ''  # Field in Flash template this object's data will be displayed in
             self.value = ''  # Contents of data object
+            self.start = 0
+            self.stop = 0
 
         @classmethod
-        def parseinput(self):
+        def parseinput(cls):
             pass
 
     def sportselect(self):
-        with raw_input('Enter sport:\n1 - Basketball\n2 - Football\n3 - Volleyball') as entry:
-            try:
-                if int(entry) in range(1, 4):
-                    self.sport = entry - 1
-            except:
-                raise ValueError
+        print 'Enter sport:\n1 - Basketball\n2 - Football\n3 - Volleyball'
+        sportentry = int(raw_input('>>>'))
+        try:
+            if int(sportentry) in range(1, 4):
+                self.sport = sportentry - 1
+        except:
+            raise ValueError
 
     def versionselect(self):
         if self.sport is 0:
-            with raw_input('Enter feed version:\n1 - Revision 0\n2 - Revision 1\n3 - Revision 2') as entry:
-                self.version = int(entry) - 1
+            print 'Enter feed version:\n1 - Revision 0\n2 - Revision 1\n3 - Revision 2'
+            versionentry = raw_input('>>>')
+            self.version = int(versionentry) - 1
         elif self.sport is 1:
-            with raw_input('Enter feed version:\n 1 - Revision 0\n 2 - Revision 1') as entry:
-                self.version = int(entry) - 1
+            print 'Enter feed version:\n1 - Revision 0\n2 - Revision 1'
+            versionentry = raw_input('>>>')
+            self.version = int(versionentry) - 1
         elif self.sport is 2:
             self.version = 0
         else:
@@ -55,20 +64,37 @@ class Scorer(object):
 
     def serialselect(self):
         seriallist = serial.tools.list_ports.comports()
+        print 'Enter serial port to use:'
         for i in range(len(seriallist)):
             print (i + 1), '-', seriallist[i]
-        with raw_input('Enter serial port to use:') as entry:
-            self.serial = int(entry) - 1
+        serialentry = raw_input('>>>')
+        if int(serialentry) - 1 in range(len(seriallist)):
+            self.serial = int(serialentry) - 1
+        else:
+            raise ValueError
 
-    def instobjects(self):
-        # Instantiate score data objects
-        homescore = self.CasparData('homescore')
-        visitorscore = self.CasparData('visitorscore')
-        clock = self.CasparData('clock')
-        period = self.CasparData('period')
-        shotclock = self.CasparData('shotclock')
-        homefouls = self.CasparData('homefouls')
-        visitorfouls = self.CasparData('visitorfouls')
+    def instgeneralobjects(self):
+        # Instantiate score data objects used in all sports
+        self.homescore = self.CasparData('homescore')
+        self.visitorscore = self.CasparData('visitorscore')
+        self.clock = self.CasparData('clock')
+        self.period = self.CasparData('period')
+        self.hometto = self.CasparData('hometto')
+        self.visitortto = self.CasparData('visitortto')
+
+    def instbbobjects(self):  # Instantiate basketball specific data objects
+        self.homefouls = self.CasparData('homefouls')
+        self.visitorfouls = self.CasparData('visitorfouls')
+        self.shotclock = self.CasparData('shotclock')
+        self.homepto = self.CasparData('homepto')
+        self.visitorpto = self.CasparData('visitorpto')
+        self.homefto = self.CasparData('homefto')
+        self.visitorfto = self.CasparData('visitorfto')
+
+    def instfbobjects(self):  # Instantiate football specific data objects
+        self.ballon = self.CasparData('ballon')
+        self.down = self.CasparData('down')
+        self.playclock = self.CasparData('playclock')
 
     def casparconnect(self):
         # casparinst = caspartalk.CasparServer
