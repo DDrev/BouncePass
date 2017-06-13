@@ -11,6 +11,7 @@ class Scorer(object):
         self.sport = 0
         self.version = 0
         self.serial = 0
+        self.globaldict = ''
         self.startup()
 
     class EntryError(ValueError):
@@ -27,9 +28,13 @@ class Scorer(object):
             self.value = ''  # Contents of data object
             self.start = 0
             self.stop = 0
+            self.setparams()
 
-        @classmethod
-        def parseinput(cls):
+        def setparams(self):
+            self.start = mastertable[str(Scorer.globaldict), str(self.ident), 0]
+            self.stop = mastertable[str(Scorer.globaldict), str(self.ident), 1]
+
+        def parseinput(self):
             pass
 
     def sportselect(self):
@@ -55,13 +60,6 @@ class Scorer(object):
         else:
             raise ValueError
 
-    def startup(self):
-        # Startup dialog asking for sport, version, and serial port to use
-        self.sportselect()
-        self.versionselect()
-        self.serialselect()
-        self.instobjects()
-
     def serialselect(self):
         seriallist = serial.tools.list_ports.comports()
         print 'Enter serial port to use:'
@@ -72,6 +70,36 @@ class Scorer(object):
             self.serial = int(serialentry) - 1
         else:
             raise ValueError
+
+    def assigndict(self):
+        if self.sport is 0 and self.version is 0:
+            self.globaldict = 'bbr0dict'
+        elif self.sport is 0 and self.version is 1:
+            self.globaldict = 'bbr1dict'
+        elif self.sport is 0 and self.version is 2:
+            self.globaldict = 'bbr2dict'
+        elif self.sport is 1 and self.version is 0:
+            self.globaldict = 'fbr0dict'
+        elif self.sport is 1 and self.version is 1:
+            self.globaldict = 'fbr1dict'
+        elif self.sport is 2:
+            self.globaldict = 'vbr0dict'
+        else:
+            raise ValueError
+
+    def startup(self):
+        # Startup dialog asking for sport, version, and serial port to use
+        self.sportselect()
+        self.versionselect()
+        self.serialselect()
+        self.assigndict()
+        self.instgeneralobjects()
+        if self.sport is 0:
+            self.instbbobjects()
+        elif self.sport is 1:
+            self.instfbobjects()
+        elif self.sport is 2:
+            self.instvbobjects()
 
     def instgeneralobjects(self):
         # Instantiate score data objects used in all sports
@@ -95,6 +123,11 @@ class Scorer(object):
         self.ballon = self.CasparData('ballon')
         self.down = self.CasparData('down')
         self.playclock = self.CasparData('playclock')
+
+    def instvbobjects(self):  # Instantiate volleyball specific data objects
+        self.homewins = self.CasparData('homewins')
+        self.visitorwins = self.CasparData('visitorwins')
+        self.gamenumber = self.CasparData('gamenumber')
 
     def casparconnect(self):
         # casparinst = caspartalk.CasparServer

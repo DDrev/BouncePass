@@ -84,12 +84,14 @@ mastertable = {
         'checksum': [41, 43]
     },
 
-    'vb0dict': {  # Volleyball
+    'vbr0dict': {  # Volleyball
         'clock': [0, 7],
         'homescore': [8, 10],
         'visitorscore': [10, 12],
         'hometto': [12, 13],
         'visitortto': [13, 14],
+        'homewins': [16, 17],
+        'visitorwins': [17, 18],
         'gamenumber': [18, 19],
         'checksum': [27, 29]
     }
