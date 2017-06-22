@@ -11,31 +11,9 @@ class Scorer(object):
         self.sport = 0
         self.version = 0
         self.serial = 0
-        self.globaldict = ''
+        self.globaldict = {}
         self.startup()
-
-    class EntryError(ValueError):
-        pass
-
-    class CasparData(object):  # Base class for scoreboard data objects
-        def __init__(self, ident):
-            """
-            :rtype : object
-            :param ident: The score data item contained by this object
-            """
-            self.ident = ident
-            self.field = ''  # Field in Flash template this object's data will be displayed in
-            self.value = ''  # Contents of data object
-            self.start = 0
-            self.stop = 0
-            self.setparams()
-
-        def setparams(self):
-            self.start = mastertable[str(Scorer.globaldict), str(self.ident), 0]
-            self.stop = mastertable[str(Scorer.globaldict), str(self.ident), 1]
-
-        def parseinput(self):
-            pass
+        self.serialport = serial.Serial
 
     def sportselect(self):
         print 'Enter sport:\n1 - Basketball\n2 - Football\n3 - Volleyball'
@@ -73,17 +51,17 @@ class Scorer(object):
 
     def assigndict(self):
         if self.sport is 0 and self.version is 0:
-            self.globaldict = 'bbr0dict'
+            self.globaldict = mastertable['bbr0dict']
         elif self.sport is 0 and self.version is 1:
-            self.globaldict = 'bbr1dict'
+            self.globaldict = mastertable['bbr1dict']
         elif self.sport is 0 and self.version is 2:
-            self.globaldict = 'bbr2dict'
+            self.globaldict = mastertable['bbr2dict']
         elif self.sport is 1 and self.version is 0:
-            self.globaldict = 'fbr0dict'
+            self.globaldict = mastertable['fbr0dict']
         elif self.sport is 1 and self.version is 1:
-            self.globaldict = 'fbr1dict'
+            self.globaldict = mastertable['fbr1dict']
         elif self.sport is 2:
-            self.globaldict = 'vbr0dict'
+            self.globaldict = mastertable['vbr0dict']
         else:
             raise ValueError
 
@@ -93,48 +71,75 @@ class Scorer(object):
         self.versionselect()
         self.serialselect()
         self.assigndict()
-        self.instgeneralobjects()
+        self.inst_general_objects()
         if self.sport is 0:
-            self.instbbobjects()
+            self.inst_bb_objects()
         elif self.sport is 1:
-            self.instfbobjects()
+            self.inst_fb_objects()
         elif self.sport is 2:
-            self.instvbobjects()
+            self.inst_vb_objects()
 
-    def instgeneralobjects(self):
+    def start_lookup(self, ident):
+        pass
+
+    def stop_lookup(self, ident):
+        pass
+
+    def inst_general_objects(self):
         # Instantiate score data objects used in all sports
-        self.homescore = self.CasparData('homescore')
-        self.visitorscore = self.CasparData('visitorscore')
-        self.clock = self.CasparData('clock')
-        self.period = self.CasparData('period')
-        self.hometto = self.CasparData('hometto')
-        self.visitortto = self.CasparData('visitortto')
+        general_list = ['homescore', 'visitorscore', 'clock', 'period', 'hometto', 'visitortto']
+        for i in general_list:
+          = CasparData(i, self.globaldict[i, 0], self.globaldict[i, 1])
+        # self.homescore = CasparData('homescore', start_lookup('homescore'))
+        # self.visitorscore = CasparData('visitorscore', self.globaldict)
+        # self.clock = CasparData('clock', self.globaldict)
+        # self.period = CasparData('period', self.globaldict)
+        # self.hometto = CasparData('hometto', self.globaldict)
+        # self.visitortto = CasparData('visitortto', self.globaldict)
 
-    def instbbobjects(self):  # Instantiate basketball specific data objects
-        self.homefouls = self.CasparData('homefouls')
-        self.visitorfouls = self.CasparData('visitorfouls')
-        self.shotclock = self.CasparData('shotclock')
-        self.homepto = self.CasparData('homepto')
-        self.visitorpto = self.CasparData('visitorpto')
-        self.homefto = self.CasparData('homefto')
-        self.visitorfto = self.CasparData('visitorfto')
+    def inst_bb_objects(self):  # Instantiate basketball specific data objects
+        self.homefouls = CasparData('homefouls', self.globaldict)
+        self.visitorfouls = CasparData('visitorfouls', self.globaldict)
+        self.shotclock = CasparData('shotclock', self.globaldict)
+        self.homepto = CasparData('homepto', self.globaldict)
+        self.visitorpto = CasparData('visitorpto', self.globaldict)
+        self.homefto = CasparData('homefto', self.globaldict)
+        self.visitorfto = CasparData('visitorfto', self.globaldict)
 
-    def instfbobjects(self):  # Instantiate football specific data objects
-        self.ballon = self.CasparData('ballon')
-        self.down = self.CasparData('down')
-        self.playclock = self.CasparData('playclock')
+    def inst_fb_objects(self):  # Instantiate football specific data objects
+        self.ballon = CasparData('ballon', self.globaldict)
+        self.down = CasparData('down', self.globaldict)
+        self.playclock = CasparData('playclock', self.globaldict)
 
-    def instvbobjects(self):  # Instantiate volleyball specific data objects
-        self.homewins = self.CasparData('homewins')
-        self.visitorwins = self.CasparData('visitorwins')
-        self.gamenumber = self.CasparData('gamenumber')
+    def inst_vb_objects(self):  # Instantiate volleyball specific data objects
+        self.homewins = CasparData('homewins', self.globaldict)
+        self.visitorwins = CasparData('visitorwins', self.globaldict)
+        self.gamenumber = CasparData('gamenumber', self.globaldict)
 
-    def casparconnect(self):
+    def caspar_connect(self):
         # casparinst = caspartalk.CasparServer
         pass
 
-    def instserial(self):  # Instantiate object and open serial port
-        serialport = serial.Serial
 
+class CasparData(object):  # Base class for scoreboard data objects
+    def __init__(self, ident, start, stop):
+        """
+        :rtype : object
+        :param ident: The score data item contained by this object
+        :param start: The start position for parsing input string from serial
+        :param stop: The stop position for parsing input string from serial
+        """
+        self.ident = ident
+        self.field = ''  # Field in Flash template this object's data will be displayed in
+        self.value = ''  # Contents of data object
+        self.start = start
+        self.stop = stop
 
+    def set_params(self):
+        self.start = mastertable[self.globaldict, self.ident, 0]
+        self.stop = mastertable[self.globaldict, self.ident, 1]
 
+    def parse_input(self, input_string):
+        with input_string as i:
+            new_value = i[self.start, self.stop]
+            return new_value
