@@ -8,116 +8,66 @@ from ParseTables import mastertable
 
 class Scorer(object):
     def __init__(self):
-        self.sport = 0
-        self.version = 0
-        self.serial = 0
         self.globaldict = {}
-        self.startup()
-        self.serialport = serial.Serial
+        self.parsed_data = {}
+        self.sport = self.sport_select()
+        self.version = self.version_select()
+        self.globaldict = self.assign_dict()
+        self.serialport = serial.Serial(self.serial_select())
+        self.parsed_data = self.data_setup()
+        # self.casparinst = caspartalk.CasparServer()
 
-    def sportselect(self):
+    def sport_select(self):
+        sport_dict = {
+            1: 'b',
+            2: 'f',
+            3: 'v'
+        }
         print 'Enter sport:\n1 - Basketball\n2 - Football\n3 - Volleyball'
-        sportentry = int(raw_input('>>>'))
-        try:
-            if int(sportentry) in range(1, 4):
-                self.sport = sportentry - 1
-        except:
-            raise ValueError
-
-    def versionselect(self):
-        if self.sport is 0:
-            print 'Enter feed version:\n1 - Revision 0\n2 - Revision 1\n3 - Revision 2'
-            versionentry = raw_input('>>>')
-            self.version = int(versionentry) - 1
-        elif self.sport is 1:
-            print 'Enter feed version:\n1 - Revision 0\n2 - Revision 1'
-            versionentry = raw_input('>>>')
-            self.version = int(versionentry) - 1
-        elif self.sport is 2:
-            self.version = 0
+        sportentry = raw_input(">>>")
+        if int(sportentry) in range(1, 4):
+            return sport_dict[int(sportentry)]
         else:
-            raise ValueError
+            raise ValueError('Entry out of range')
 
-    def serialselect(self):
+    def version_select(self):
+        version_dialog = {
+            'b': 'Enter feed version:\n1 - Revision 0\n2 - Revision 1\n3 - Revision 2',
+            'f': 'Enter feed version:\n1 - Revision 0\n2 - Revision 1',
+        }
+        if self.sport != 'v':
+            print version_dialog[self.sport]
+            versionentry = raw_input('>>>')
+            return str(int(versionentry) - 1)
+        elif self.sport == 'v':
+            return '0'
+        else:
+            raise ValueError('Entry out of range')
+
+    @staticmethod
+    def serial_select():
         seriallist = serial.tools.list_ports.comports()
         print 'Enter serial port to use:'
         for i in range(len(seriallist)):
             print (i + 1), '-', seriallist[i]
         serialentry = raw_input('>>>')
         if int(serialentry) - 1 in range(len(seriallist)):
-            self.serial = int(serialentry) - 1
+            return str(str(seriallist[int(serialentry) - 1]).partition(' - ')[0])
         else:
-            raise ValueError
+            raise ValueError('Entry out of range')
 
-    def assigndict(self):
-        if self.sport is 0 and self.version is 0:
-            self.globaldict = mastertable['bbr0dict']
-        elif self.sport is 0 and self.version is 1:
-            self.globaldict = mastertable['bbr1dict']
-        elif self.sport is 0 and self.version is 2:
-            self.globaldict = mastertable['bbr2dict']
-        elif self.sport is 1 and self.version is 0:
-            self.globaldict = mastertable['fbr0dict']
-        elif self.sport is 1 and self.version is 1:
-            self.globaldict = mastertable['fbr1dict']
-        elif self.sport is 2:
-            self.globaldict = mastertable['vbr0dict']
-        else:
-            raise ValueError
+    def assign_dict(self):
+        return mastertable[self.sport + 'br' + self.version + 'dict']
 
-    def startup(self):
-        # Startup dialog asking for sport, version, and serial port to use
-        self.sportselect()
-        self.versionselect()
-        self.serialselect()
-        self.assigndict()
-        self.inst_general_objects()
-        if self.sport is 0:
-            self.inst_bb_objects()
-        elif self.sport is 1:
-            self.inst_fb_objects()
-        elif self.sport is 2:
-            self.inst_vb_objects()
+    def parse_serial(self):
+        # new_data = self.serialport.read_until(terminator=0x04)
+        for key in self.parsed_data.iterkeys():
+            print key
 
-    def start_lookup(self, ident):
-        pass
+    def data_setup(self):
+        return dict.fromkeys(self.globaldict.iterkeys(), '0')
 
-    def stop_lookup(self, ident):
-        pass
-
-    def inst_general_objects(self):
-        # Instantiate score data objects used in all sports
-        general_list = ['homescore', 'visitorscore', 'clock', 'period', 'hometto', 'visitortto']
-        for i in general_list:
-          = CasparData(i, self.globaldict[i, 0], self.globaldict[i, 1])
-        # self.homescore = CasparData('homescore', start_lookup('homescore'))
-        # self.visitorscore = CasparData('visitorscore', self.globaldict)
-        # self.clock = CasparData('clock', self.globaldict)
-        # self.period = CasparData('period', self.globaldict)
-        # self.hometto = CasparData('hometto', self.globaldict)
-        # self.visitortto = CasparData('visitortto', self.globaldict)
-
-    def inst_bb_objects(self):  # Instantiate basketball specific data objects
-        self.homefouls = CasparData('homefouls', self.globaldict)
-        self.visitorfouls = CasparData('visitorfouls', self.globaldict)
-        self.shotclock = CasparData('shotclock', self.globaldict)
-        self.homepto = CasparData('homepto', self.globaldict)
-        self.visitorpto = CasparData('visitorpto', self.globaldict)
-        self.homefto = CasparData('homefto', self.globaldict)
-        self.visitorfto = CasparData('visitorfto', self.globaldict)
-
-    def inst_fb_objects(self):  # Instantiate football specific data objects
-        self.ballon = CasparData('ballon', self.globaldict)
-        self.down = CasparData('down', self.globaldict)
-        self.playclock = CasparData('playclock', self.globaldict)
-
-    def inst_vb_objects(self):  # Instantiate volleyball specific data objects
-        self.homewins = CasparData('homewins', self.globaldict)
-        self.visitorwins = CasparData('visitorwins', self.globaldict)
-        self.gamenumber = CasparData('gamenumber', self.globaldict)
-
-    def caspar_connect(self):
-        # casparinst = caspartalk.CasparServer
+    def caspar_send(self):
         pass
 
 
@@ -135,11 +85,11 @@ class CasparData(object):  # Base class for scoreboard data objects
         self.start = start
         self.stop = stop
 
-    def set_params(self):
-        self.start = mastertable[self.globaldict, self.ident, 0]
-        self.stop = mastertable[self.globaldict, self.ident, 1]
+    # def set_params(self):
+    #     self.start = mastertable[self.globaldict, self.ident, 0]
+    #     self.stop = mastertable[self.globaldict, self.ident, 1]
 
-    def parse_input(self, input_string):
-        with input_string as i:
-            new_value = i[self.start, self.stop]
-            return new_value
+    # def parse_input(self, input_string):
+    #     with input_string as i:
+    #         new_value = i[self.start, self.stop]
+    #         return new_value
