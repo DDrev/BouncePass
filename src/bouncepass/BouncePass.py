@@ -4,6 +4,7 @@ import caspartalk
 import serial
 import serial.tools.list_ports
 from ParseTables import mastertable
+import xml.etree.ElementTree as ETree
 
 
 class Scorer(object):
@@ -15,9 +16,10 @@ class Scorer(object):
         self.globaldict = self.assign_dict()
         self.serialport = serial.Serial(self.serial_select())
         self.parsed_data = self.data_setup()
-        # self.casparinst = caspartalk.CasparServer()
+        self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
 
-    def sport_select(self):
+    @staticmethod
+    def sport_select():
         sport_dict = {
             1: 'b',
             2: 'f',
@@ -60,15 +62,24 @@ class Scorer(object):
         return mastertable[self.sport + 'br' + self.version + 'dict']
 
     def parse_serial(self):
-        # new_data = self.serialport.read_until(terminator=0x04)
-        for key in self.parsed_data.iterkeys():
-            print key
+        new_data = self.serialport.read_until(terminator=0x04)
+        for key in self.globaldict.iterkeys():
+            self.parsed_data[key] = new_data[self.globaldict[key][0], self.globaldict[key][1]]
 
     def data_setup(self):
         return dict.fromkeys(self.globaldict.iterkeys(), '0')
 
     def caspar_send(self):
-        pass
+        self.casparinst.send_amcp_command(amcp_command="CG 1-1 UPDATE 1 {0}".format(self.format_output()))
+
+    def format_output(self):
+        """
+        Formats dictionary of parsed data into XML to send over network socket to CasparCG.
+        :return: ElementTree
+        """
+        output_header = ETree.Element('templateData')
+        for key in self.parsed_data:
+            pass
 
 
 class CasparData(object):  # Base class for scoreboard data objects
