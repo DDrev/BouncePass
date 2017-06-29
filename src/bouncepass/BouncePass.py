@@ -5,6 +5,7 @@ import serial
 import serial.tools.list_ports
 from ParseTables import mastertable
 import xml.etree.ElementTree as ETree
+import copy
 
 
 class Scorer(object):
@@ -16,7 +17,10 @@ class Scorer(object):
         self.globaldict = self.assign_dict()
         self.serialport = serial.Serial(self.serial_select())
         self.parsed_data = self.data_setup()
-        self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
+        # self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
+        self.casparinst = caspartalk.CasparServer(server_ip='192.168.1.108')
+        # self.output = ''
+        self.mainloop()
 
     @staticmethod
     def sport_select():
@@ -62,39 +66,54 @@ class Scorer(object):
         return mastertable[self.sport + 'br' + self.version + 'dict']
 
     def parse_serial(self):
-        new_data = self.serialport.read_until(terminator=0x04)
-        for key in self.globaldict.iterkeys():
-            self.parsed_data[key] = new_data[self.globaldict[key][0], self.globaldict[key][1]]
+        # new_data = self.serialport.read_all()
+        new_data = ' 7:57       0  0 0 0      10E'
+        self.serialport.flush()
+        for key in self.parsed_data.iterkeys():
+            self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
 
     def data_setup(self):
         return dict.fromkeys(self.globaldict.iterkeys(), '0')
 
-    def caspar_send(self):
-        self.casparinst.send_amcp_command(amcp_command="CG 1-1 UPDATE 1 {0}".format(self.format_output()))
+    def caspar_send(self, data):
+        self.casparinst.send_amcp_command(amcp_command="CG 1-0 UPDATE 1 \"{0}\"".format(self.format_output(data)))
 
-    def format_output(self):
-        """
-        Formats dictionary of parsed data into XML to send over network socket to CasparCG.
-        :return: ElementTree
-        """
-        output_header = ETree.Element('templateData')
-        for key in self.parsed_data:
-            pass
+    @staticmethod
+    def format_output(output_dict):
+        output_string = ''
+        output_string += '<templateData>'
+        for key, value in output_dict.iteritems():
+            data_string = ''
+            data_string += '<componentData id=\"{0}\">'.format(key)
+            data_string += '<data id=\"text\" value=\"{0}\" /></componentData>'.format(value)
+            output_string += data_string
+        # for i in range(:10000):
+        #     data_string = ''
+        #     data_string += '<componentData id=\"f0\">'
+        #     data_string += '<data id=\"text\" value=\"{0}\" /></componentData>'.format(i)
+        #     output_string += data_string
+        output_string += '</templateData>'
+        return output_string
+
+    def mainloop(self):
+        while 1:
+            self.parse_serial()
+            self.caspar_send(self.parsed_data)
 
 
-class CasparData(object):  # Base class for scoreboard data objects
-    def __init__(self, ident, start, stop):
-        """
-        :rtype : object
-        :param ident: The score data item contained by this object
-        :param start: The start position for parsing input string from serial
-        :param stop: The stop position for parsing input string from serial
-        """
-        self.ident = ident
-        self.field = ''  # Field in Flash template this object's data will be displayed in
-        self.value = ''  # Contents of data object
-        self.start = start
-        self.stop = stop
+# class CasparData(object):  # Base class for scoreboard data objects
+#     def __init__(self, ident, start, stop):
+#         """
+#         :rtype : object
+#         :param ident: The score data item contained by this object
+#         :param start: The start position for parsing input string from serial
+#         :param stop: The stop position for parsing input string from serial
+#         """
+#         self.ident = ident
+#         self.field = ''  # Field in Flash template this object's data will be displayed in
+#         self.value = ''  # Contents of data object
+#         self.start = start
+#         self.stop = stop
 
     # def set_params(self):
     #     self.start = mastertable[self.globaldict, self.ident, 0]
