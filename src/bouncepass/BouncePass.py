@@ -6,6 +6,7 @@ import serial.tools.list_ports
 from ParseTables import mastertable
 import xml.etree.ElementTree as ETree
 import copy
+import time
 
 
 class Scorer(object):
@@ -76,7 +77,7 @@ class Scorer(object):
         return dict.fromkeys(self.globaldict.iterkeys(), '0')
 
     def caspar_send(self, data):
-        self.casparinst.send_amcp_command(amcp_command="CG 1-0 UPDATE 1 \"{0}\"".format(self.format_output(data)))
+        self.casparinst.send_amcp_command(amcp_command='CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data)))
 
     @staticmethod
     def format_output(output_dict):
@@ -84,14 +85,9 @@ class Scorer(object):
         output_string += '<templateData>'
         for key, value in output_dict.iteritems():
             data_string = ''
-            data_string += '<componentData id=\"{0}\">'.format(key)
-            data_string += '<data id=\"text\" value=\"{0}\" /></componentData>'.format(value)
+            data_string += '<componentData id=\\\"{0}\\\">'.format(key)
+            data_string += '<data id=\\\"text\\\" value=\\\"{0}\\\" /></componentData>'.format(value)
             output_string += data_string
-        # for i in range(:10000):
-        #     data_string = ''
-        #     data_string += '<componentData id=\"f0\">'
-        #     data_string += '<data id=\"text\" value=\"{0}\" /></componentData>'.format(i)
-        #     output_string += data_string
         output_string += '</templateData>'
         return output_string
 
@@ -99,6 +95,7 @@ class Scorer(object):
         while 1:
             self.parse_serial()
             self.caspar_send(self.parsed_data)
+            time.sleep(0.05)
 
 
 # class CasparData(object):  # Base class for scoreboard data objects
