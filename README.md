@@ -1,5 +1,4 @@
 # BouncePass
-
 (Formerly called PyScore)
 
 A lightweight client to integrate Daktronics TV Feed data into SVT's CasparCG.
