@@ -24,8 +24,7 @@ class Scorer(object):
         # self.testinput = file('capture.txt')
         self.mainloop()
 
-    @staticmethod
-    def sport_select():
+    def sport_select(self):
         sport_dict = {
             1: 'b',
             2: 'f',
@@ -52,8 +51,7 @@ class Scorer(object):
         else:
             raise ValueError('Entry out of range')
 
-    @staticmethod
-    def serial_select():
+    def serial_select(self):
         seriallist = serial.tools.list_ports.comports()
         print 'Enter serial port to use:'
         for i in range(len(seriallist)):
@@ -72,19 +70,16 @@ class Scorer(object):
         new_data = ' 7:57       0  0 0 0      10E'
         # new_data = self.testinput.readline()
         # self.serialport.flush()
-        for key in self.parsed_data.iterkeys():
-            self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
-
-    def data_setup(self):
-        return dict.fromkeys(self.globaldict.iterkeys(), '0')
-
-    def remove_duplicates(self):
         self.output_data = {}
         for key in self.parsed_data.iterkeys():
+            self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
             if key != 'checksum':
                 if self.parsed_data[key] != self.cached_data[key]:
                     self.output_data[key] = self.parsed_data[key]
             self.cached_data[key] = self.parsed_data[key]
+
+    def data_setup(self):
+        return dict.fromkeys(self.globaldict.iterkeys(), '0')
 
     def caspar_send(self, data):
         if data != {}:
@@ -92,45 +87,17 @@ class Scorer(object):
         else:
             pass
 
-    @staticmethod
-    def format_output(output_dict):
+    def format_output(self, output_dict):
         output_string = ''
         output_string += '<templateData>'
         for key, value in output_dict.iteritems():
-            data_string = ''
-            data_string += '<componentData id=\\\"{0}\\\">'.format(key)
-            data_string += '<data id=\\\"text\\\" value=\\\"{0}\\\" /></componentData>'.format(value)
-            output_string += data_string
+            output_string += '<componentData id=\\\"{0}\\\"><data id=\\\"text\\\" value=\\\"{1}\\\" /></componentData>'\
+                .format(key, value)
         output_string += '</templateData>'
         return output_string
 
     def mainloop(self):
         while 1:
             self.parse_serial()
-            self.remove_duplicates()
             self.caspar_send(self.output_data)
             time.sleep(0.05)
-
-
-# class CasparData(object):  # Base class for scoreboard data objects
-#     def __init__(self, ident, start, stop):
-#         """
-#         :rtype : object
-#         :param ident: The score data item contained by this object
-#         :param start: The start position for parsing input string from serial
-#         :param stop: The stop position for parsing input string from serial
-#         """
-#         self.ident = ident
-#         self.field = ''  # Field in Flash template this object's data will be displayed in
-#         self.value = ''  # Contents of data object
-#         self.start = start
-#         self.stop = stop
-
-    # def set_params(self):
-    #     self.start = mastertable[self.globaldict, self.ident, 0]
-    #     self.stop = mastertable[self.globaldict, self.ident, 1]
-
-    # def parse_input(self, input_string):
-    #     with input_string as i:
-    #         new_value = i[self.start, self.stop]
-    #         return new_value
