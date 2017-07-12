@@ -6,6 +6,7 @@ import serial.tools.list_ports
 from ParseTables import mastertable
 import copy
 import time
+import io
 
 
 class Scorer(object):
@@ -16,11 +17,11 @@ class Scorer(object):
         self.sport = self.sport_select()
         self.version = self.version_select()
         self.globaldict = self.assign_dict()
-        # self.serialport = serial.Serial(self.serial_select())
+        self.serial_port = serial.Serial(self.serial_select(), baudrate=9600, timeout=2)
         self.parsed_data = self.data_setup()
         self.cached_data = copy.deepcopy(self.parsed_data)
         # self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
-        self.casparinst = caspartalk.CasparServer(server_ip='192.168.1.108')
+        # self.casparinst = caspartalk.CasparServer(server_ip='192.168.1.108')
         # self.testinput = file('capture.txt')
         self.mainloop()
 
@@ -66,24 +67,26 @@ class Scorer(object):
         return mastertable[self.sport + 'br' + self.version + 'dict']
 
     def parse_serial(self):
-        # new_data = self.serialport.read_all()
-        new_data = ' 7:57       0  0 0 0      10E'
+        binary_data = self.serial_port.read(50)
+        # new_data = ' 7:57       0  0 0 0      10E'
         # new_data = self.testinput.readline()
-        # self.serialport.flush()
         self.output_data = {}
-        for key in self.parsed_data.iterkeys():
-            self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
-            if key != 'checksum':
-                if self.parsed_data[key] != self.cached_data[key]:
-                    self.output_data[key] = self.parsed_data[key]
-            self.cached_data[key] = self.parsed_data[key]
+        self.serial_port.reset_input_buffer()
+        print binary_data
+        # for key in self.parsed_data.iterkeys():
+        #     self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
+        #     if key != 'checksum':
+        #         if self.parsed_data[key] != self.cached_data[key]:
+        #             self.output_data[key] = self.parsed_data[key]
+        #     self.cached_data[key] = self.parsed_data[key]
 
     def data_setup(self):
         return dict.fromkeys(self.globaldict.iterkeys(), '0')
 
     def caspar_send(self, data):
         if data != {}:
-            self.casparinst.send_amcp_command(amcp_command='CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data)))
+            # self.casparinst.send_amcp_command(amcp_command='CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data)))
+            print 'CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data))
         else:
             pass
 
