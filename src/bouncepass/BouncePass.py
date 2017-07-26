@@ -6,7 +6,6 @@ import serial.tools.list_ports
 from ParseTables import mastertable
 import copy
 import time
-import io
 
 
 class Scorer(object):
@@ -23,6 +22,7 @@ class Scorer(object):
         # self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
         # self.casparinst = caspartalk.CasparServer(server_ip='192.168.1.108')
         # self.testinput = file('capture.txt')
+        self.serial_port.reset_input_buffer()
         self.mainloop()
 
     def sport_select(self):
@@ -66,19 +66,31 @@ class Scorer(object):
     def assign_dict(self):
         return mastertable[self.sport + 'br' + self.version + 'dict']
 
-    def parse_serial(self):
-        binary_data = self.serial_port.read(50)
+    def get_serial(self):
+        data_string = ''
+        while True:
+            byte_read = self.serial_port.read(1)
+            if byte_read == '\x01':
+                break
+        while True:
+            byte_read = self.serial_port.read(1)
+            if byte_read == '\x04':
+                break
+            else:
+                data_string += byte_read
+        return data_string
+
+    def parse_serial(self, data_string):
+        new_data = data_string
         # new_data = ' 7:57       0  0 0 0      10E'
         # new_data = self.testinput.readline()
         self.output_data = {}
-        self.serial_port.reset_input_buffer()
-        print binary_data
-        # for key in self.parsed_data.iterkeys():
-        #     self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
-        #     if key != 'checksum':
-        #         if self.parsed_data[key] != self.cached_data[key]:
-        #             self.output_data[key] = self.parsed_data[key]
-        #     self.cached_data[key] = self.parsed_data[key]
+        for key in self.parsed_data.iterkeys():
+            self.parsed_data[key] = new_data[self.globaldict[key][0]:self.globaldict[key][1]]
+            if key != 'checksum':
+                if self.parsed_data[key] != self.cached_data[key]:
+                    self.output_data[key] = self.parsed_data[key]
+            self.cached_data[key] = self.parsed_data[key]
 
     def data_setup(self):
         return dict.fromkeys(self.globaldict.iterkeys(), '0')
@@ -101,6 +113,7 @@ class Scorer(object):
 
     def mainloop(self):
         while 1:
-            self.parse_serial()
+            # print self.get_serial()
+            self.parse_serial(self.get_serial())
             self.caspar_send(self.output_data)
-            time.sleep(0.05)
+            # time.sleep(0.05)

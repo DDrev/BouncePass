@@ -7,8 +7,8 @@ mastertable = {
     'bbr0dict':  {  # Basketball Revision 0
         'clock': [0, 7],
         'shotclock': [8, 10],
-        'homescore': [11, 14],
-        'visitorscore': [14, 17],
+        'homescore': [10, 13],
+        'visitorscore': [13, 16],
         'homefouls': [16, 18],
         'visitorfouls': [18, 20],
         'homefto': [20, 21],
