@@ -6,6 +6,7 @@ import serial.tools.list_ports
 from ParseTables import mastertable
 import copy
 import time
+import atexit
 
 
 class Scorer(object):
@@ -23,6 +24,7 @@ class Scorer(object):
         # self.casparinst = caspartalk.CasparServer(server_ip='192.168.1.108')
         # self.testinput = file('capture.txt')
         self.serial_port.reset_input_buffer()
+        atexit.register(self.exit_close_serial())
         self.mainloop()
 
     def sport_select(self):
@@ -117,3 +119,6 @@ class Scorer(object):
             self.parse_serial(self.get_serial())
             self.caspar_send(self.output_data)
             # time.sleep(0.05)
+
+    def exit_close_serial(self):
+        self.serial_port.close()
