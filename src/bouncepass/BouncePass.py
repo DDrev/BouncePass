@@ -6,7 +6,6 @@ import serial.tools.list_ports
 from ParseTables import mastertable
 import copy
 import time
-import atexit
 
 
 class Scorer(object):
@@ -20,11 +19,10 @@ class Scorer(object):
         self.serial_port = serial.Serial(self.serial_select(), baudrate=9600, timeout=2)
         self.parsed_data = self.data_setup()
         self.cached_data = copy.deepcopy(self.parsed_data)
-        # self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
+        self.casparinst = caspartalk.CasparServer(server_ip='127.0.0.1')
         # self.casparinst = caspartalk.CasparServer(server_ip='192.168.1.108')
         # self.testinput = file('capture.txt')
         self.serial_port.reset_input_buffer()
-        atexit.register(self.exit_close_serial())
         self.mainloop()
 
     def sport_select(self):
@@ -99,8 +97,8 @@ class Scorer(object):
 
     def caspar_send(self, data):
         if data != {}:
-            # self.casparinst.send_amcp_command(amcp_command='CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data)))
-            print 'CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data))
+            self.casparinst.send_amcp_command(amcp_command='CG 1-1 UPDATE 1 \"{0}\"'.format(self.format_output(data)))
+            # print 'CG 1-0 UPDATE 1 \"{0}\"'.format(self.format_output(data))
         else:
             pass
 
